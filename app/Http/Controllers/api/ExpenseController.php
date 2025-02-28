@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\ExpenseResource;
 use App\Models\Expense;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class ExpenseController extends Controller
@@ -46,13 +47,13 @@ class ExpenseController extends Controller
 
     public function show($id)
     {
-        $expense = Expense::find($id);
-    
+        $expense = Expense::where('ticket_id',$id)->get();
+
         if (!$expense) {
             return response()->json(['message' => 'Expense Not Found'], 404);
         }
     
-        return new ExpenseResource($expense);
+        return  ExpenseResource::collection($expense);
     }
 
     public function update(Request $request, Expense $expense){
