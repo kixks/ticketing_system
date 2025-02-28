@@ -63,6 +63,7 @@ class TicketController extends Controller
         return TicketResource::collection($allTickets);
        
     }
+
     public function update(UpdateTicketRequest $request, Ticket $ticket){
         $ticket->update([
             'plate_number' => $request->plate_number,

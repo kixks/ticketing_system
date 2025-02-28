@@ -16,6 +16,7 @@ class ExpenseResource extends JsonResource
     {
         // return parent::toArray($request);
         return [
+            'id' => $this->id,
             'ticket_id' => $this->ticket_id,
             'expense_type' => $this->expense_type,
             'amount' => $this->amount,
