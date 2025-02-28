@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdateTicketRequest;
 use App\Http\Resources\TicketResource;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
@@ -56,5 +57,46 @@ class TicketController extends Controller
         return response()->json(['message'=>'Ticket Created Successfully',
                                 'ticket' => new TicketResource($ticket)],200);
 
+    }
+    public function show($userID){
+        $allTickets = Ticket::where('user_id', $userID)->get(); // Fetch all tickets
+        return TicketResource::collection($allTickets);
+       
+    }
+    public function update(UpdateTicketRequest $request, Ticket $ticket){
+        $ticket->update([
+            'plate_number' => $request->plate_number,
+            'car_type' => $request->car_type,
+            'trip_details' => $request->trip_details,
+            'passenger_count' => $request->passenger_count,
+            'departure_time' => $request->departure_time,
+            'expected_return_time' => $request->expected_return_time
+        ]);
+
+        return response()->json([
+            'message'=>'Ticket Successfully Updated',
+            'data'=> new TicketResource($ticket)
+        ]);
+    }
+
+    public function destroy(Ticket $ticket){
+
+        try{
+            if(!$ticket){
+                return response()->json([
+                    'message'=>'Ticket was not Found'
+                ],404);
+            }
+            $ticket->delete();
+            return response()->json([
+                'message'=>'Ticket Successfully Deleted'
+            ],200);
+        }
+        catch(\Exception $e){
+            return response()->json([
+                'message' => 'Failed to delete ticket',
+            'error' => env('APP_DEBUG') ? $e->getMessage() : 'Something went wrong'
+            ],500);
+        }
     }
 }

@@ -10,7 +10,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/login',[AuthController::class, 'login']);
 Route::post('/register',[AuthController::class, 'register']);
-Route::post('/qrlogs',QrlogController::class,'store');
+
+Route::post('/qrlogs',[QrlogController::class,'store']);
+Route::put('/qrlogs',[QrlogController::class,'arrived']);
 
 Route::middleware(['auth:sanctum'])->group(function(){
 

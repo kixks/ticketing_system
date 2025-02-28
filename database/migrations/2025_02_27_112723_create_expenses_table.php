@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('ticket_id');
             $table->foreign('ticket_id')->references('id')->on('tickets')->onDelete('cascade');
-            $table->enum('expense_type',['gas','food','hotel','allowance']);
+            $table->enum('expense_type',['gas','food','hotel','allowance','road toll']);
             $table->decimal('amount', 10, 2); 
             $table->text('remarks')->nullable();
             $table->timestamps();
