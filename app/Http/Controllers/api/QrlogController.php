@@ -17,30 +17,28 @@ class QrlogController extends Controller
     {
         // Validate the request
         $validator = Validator::make($request->all(), [
-            'ticket_id' => 'required|exists:tickets,id',
+            'qr_code' => 'required|exists:tickets,qr_code',
             'security_officer_name'=>'required|string|max:50'
         ]);
     
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
-    
-        // Fetch the ticket details
-        $ticket = Ticket::find($request->ticket_id);
+
+        $ticket_id = $this->checkQR($request->qr_code);
 
         $now = Carbon::now('Asia/Manila'); 
+
+        $ticket_expiration = $this->checkTicketExpiration($ticket_id);
     
-        // Check if ticket is expired (with a 1-day allowance)
-        $expiry_with_allowance = Carbon::parse($ticket->expected_return_time)->addDay(); // +1 day grace period
-    
-        if (Carbon::now()->greaterThan($expiry_with_allowance)) {
+        if (Carbon::now()->greaterThan($ticket_expiration)) {
             return response()->json([
                 'message' => 'This ticket has expired. Please contact the admin for assistance.'
             ], 403); 
         }
     
         $qrlog = Qrlog::create([
-            'ticket_id' => $request->ticket_id,
+            'ticket_id' => $ticket_id,
             'security_officer_name' => $request->security_officer_name, 
             'scanned_at' => $now , // Store current date and time
             'status' => 'Departed'
@@ -52,14 +50,44 @@ class QrlogController extends Controller
         ], 200);
     }
 
-    public function arrived(Request $request){
+    
 
-        $request->validate([
-            'ticket_id' => 'required|exists:qrlogs,ticket_id', //id must exist in the qrlogs table
+    public function checkQR($qrstring)
+    {
+
+        $ticket_id = Ticket::where('qr_code',$qrstring)->first()->id;
+
+        return $ticket_id;
+    }
+
+    public function checkTicketExpiration($ticket_id)
+    {
+        // Fetch the ticket details
+        $ticket = Ticket::find($ticket_id);
+    
+        // Check if ticket is expired (with a 1-day allowance)
+        $expiry_with_allowance = Carbon::parse($ticket->expected_return_time)->addDay(); // +1 day grace period
+
+        return $expiry_with_allowance;
+    }
+
+
+
+    public function arrived(Request $request)
+    {
+
+        $validator = Validator::make($request->all(), [
+            'qr_code' => 'required|exists:tickets,qr_code',
         ]);
 
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $ticket_id = $this->checkQR($request->qr_code);
+
         // Find the QR log where ticket_id matches and status is currently 'Departed'
-        $qrlog = Qrlog::where('ticket_id', $request->ticket_id)
+        $qrlog = Qrlog::where('ticket_id', $ticket_id)
                     ->where('status', 'Departed')
                     ->first();
 
